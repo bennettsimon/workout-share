@@ -14,6 +14,7 @@ import "@style/globals.css";
 const Page = () => {
   const [data, setData] = useState({});
   const [image, setImage] = useState(null);
+  const canvasRef = useRef(null);
 
   const handleInput = (e) => {
     const { name, value } = e.target;
@@ -50,6 +51,7 @@ const Page = () => {
         {/* Nav Btn */}
         <div className="justify-self-end">
           <button
+            onClick={() => canvasRef.current.exportImage()}
             className="group h-10 bg-workout disabled:bg-slate-100 px-3 py-2 rounded-xl">
             <SVGSquareAndArrowDown className="w-4 h-4 fill-slate-800 group-disabled:fill-slate-400" />
           </button>
@@ -58,6 +60,7 @@ const Page = () => {
 
       <section className="relative group">
         <WebGLRenderer
+          onRef={canvasRef}
           data={data}
           image={image}
         />

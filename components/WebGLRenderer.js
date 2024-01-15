@@ -1,9 +1,28 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useImperativeHandle } from "react";
 import * as PIXI from "pixi.js";
 
-const WebGLRenderer = ({ data, image }) => {
+const WebGLRenderer = ({ data, image, onRef }) => {
   const containerRef = useRef(null);
   const appRef = useRef();
+
+  useEffect(() => {
+    // Initialize PIXI Application
+    let app = new PIXI.Application({
+      backgroundAlpha: 1,
+      backgroundColor: "#f1f5f9",
+      width: 1200,
+      height: 1600,
+    });
+    appRef.current = app;
+    app.view.className = "w-full aspect-[3/4] bg-slate-100 rounded-2xl";
+    containerRef.current.appendChild(app.view);
+    if (image) imageRenderer(app);
+    if (Object.keys(data).length !== 0 && image) maskRenderer(app);
+
+    return () => {
+      app.destroy(true, true);
+    };
+  }, [data, image]);
 
   const imageRenderer = (app) => {
     // Draw background image
@@ -96,24 +115,21 @@ const WebGLRenderer = ({ data, image }) => {
     overlap.addChild(date);
   };
 
-  useEffect(() => {
-    // Initialize PIXI Application
-    let app = new PIXI.Application({
-      backgroundAlpha: 1,
-      backgroundColor: "#f1f5f9",
-      width: 1200,
-      height: 1600,
-    });
-    appRef.current = app;
-    app.view.className = "w-full aspect-[3/4] bg-slate-100 rounded-2xl";
-    containerRef.current.appendChild(app.view);
-    if (image) imageRenderer(app);
-    if (Object.keys(data).length !== 0 && image) maskRenderer(app);
+  const exportImage = async () => {
+    const url = await appRef.current.renderer.extract.base64(appRef.current.stage);
+    const a = document.createElement("a");
+    document.body.append(a);
+    a.download = "test";
+    a.href = url;
+    a.click();
+    a.remove();
+  };
 
-    return () => {
-      app.destroy(true, true);
+  useImperativeHandle(onRef, () => {
+    return {
+      exportImage,
     };
-  }, [data, image]);
+  });
 
   return (
     <div
