@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import html2canvas from "html2canvas";
 import InputWithIcon from "@components/input";
 import SVGRunSquare from "@components/svg/runSquare";
 import SVGRun from "@components/svg/run";
@@ -8,28 +9,30 @@ import SVGClockBadge from "@components/svg/clockBadge";
 import SVGCalendarBadge from "@components/svg/calendarBadge";
 import SVGMedal from "@components/svg/medal";
 import SVGSquareAndArrowDown from "@components/svg/squareAndArrowDown";
-import WebGLRenderer from "@components/WebGLRenderer";
-import "@style/globals.css";
+import "@/style/globals.css";
 
 const Page = () => {
   const [data, setData] = useState({});
   const [image, setImage] = useState(null);
+  const canvasRef = useRef(null);
 
   const handleInput = (e) => {
-    const { name, value } = e.target;
-    setData((prev) => {
-      if (value === "") {
-        const newData = { ...prev };
-        delete newData[name];
-        return newData;
-      } else {
-        return { ...prev, [name]: value };
-      }
-    });
+    setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const uploadImage = (e) => {
     setImage(URL.createObjectURL(e.target.files[0]));
+  };
+
+  const handleDownloadImage = async () => {
+    const canvas = await html2canvas(canvasRef.current);
+    const image = canvas.toDataURL("image/png");
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = 'captured-image.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -50,18 +53,19 @@ const Page = () => {
         {/* Nav Btn */}
         <div className="justify-self-end">
           <button
+            onClick={handleDownloadImage}
             className="group h-10 bg-workout disabled:bg-slate-100 px-3 py-2 rounded-xl">
             <SVGSquareAndArrowDown className="w-4 h-4 fill-slate-800 group-disabled:fill-slate-400" />
           </button>
         </div>
       </nav>
 
-      <section className="relative group">
-        <WebGLRenderer
-          data={data}
-          image={image}
-        />
-
+      <section
+        ref={canvasRef}
+        className="relative group">
+        <div
+          className="w-full aspect-[3/4] bg-slate-100 rounded-2xl bg-center bg-cover"
+          style={{ backgroundImage: `url(${image})` }}></div>
         {/* Upload Placeholder */}
         <input
           id="image"
@@ -70,10 +74,10 @@ const Page = () => {
           onChange={uploadImage}
         />
         <label
-          htmlFor="image"
+          for="image"
           className={`${
             image ? "hidden" : "absolute"
-          } -z-1 top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4`}>
+          } -z-1 top-1/3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4`}>
           <div className="w-16">
             <SVGArrowUp className="fill-slate-300" />
           </div>
@@ -83,6 +87,28 @@ const Page = () => {
             choose your picture
           </h1>
         </label>
+        {/* Overlap */}
+        <div className="absolute bottom-0 w-full p-4">
+          <div className="w-full bg-slate-800/60 rounded-2xl px-4 py-3 flex justify-between">
+            <div className="flex gap-2">
+              <div className="h-full aspect-square rounded-full bg-slate-800 p-2 grid place-content-center">
+                <SVGRun className="h-6 w-6 fill-workout" />
+              </div>
+              <div className="whitespace-nowrap">
+                <span className="font-base leading-4 text-white tracking-normal">
+                  {data.workout || "Indoor Run"}
+                </span>
+                <h1 className="text-2xl text-workout leading-6 tracking-wide">
+                  {data.result || "0.00KM"}
+                </h1>
+              </div>
+            </div>
+            <div className="h-full text-[8px] leading-[8px] tracking-wide space-y-1 text-slate-200 self-end text-right">
+              <span className="block">{data.period || "00:00-00:00"}</span>
+              <span className="block">{data.date || "01/01/2024"}</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="grid grid-cols-2 gap-3">

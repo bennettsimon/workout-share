@@ -4,11 +4,14 @@ const InputWithIcon = ({ placeholder, icon, value, onChange, name }) => {
       <div className="w-6">
         {icon}
       </div>
+      {/* 分割线 */}
       <hr className="w-[1px] h-6 bg-slate-300" />
       <div className="h-auto flex flex-col gap-1">
+      {/* 提示文本 */}
         <label className="text-[8px] leading-[8px] text-slate-400 tracking-wider uppercase">
           {name || "Label"}
         </label>
+        {/* 输入框 */}
         <input
           className="w-full outline-none placeholder:text-slate-400 text-slate-800 bg-transparent leading-4"
           type="text"
